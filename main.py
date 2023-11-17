@@ -1,5 +1,6 @@
 import numpy as np  # used to compute mean and standard deviation
 import pymnet  # library for handling networks (graphs) and multilayer networks. [Ref: http://www.mkivela.com/pymnet/]
+import networkx as nx
 
 """This code computes the average degree (average number of edges per node) of a random graph/network corresponding 
 to a given percentage of unique neighborhoods structures ("uniqueness"). It does that with the function called 
@@ -19,7 +20,15 @@ Empirical evaluations have shown that higher the average degree, higher the numb
 not necessarily true in the graph dense region, i.e. when the graph is almost complete). This last consideration is 
 crucial in order to make a decision regarding which new interval to consider in the recursion of the binary search."""
 
+file_path = "data/SNAP_facebook_clean_data"
 
+
+def readNetworkFromRLD(file_path):
+    with open(file_path, 'r') as file:
+        edges = [tuple(map(int, line.strip().split())) for line in file]
+
+    RDatasetGraph = nx.Graph(edges)
+    return RDatasetGraph
 def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
     """ This function generates a random network with a given size and average dedgree
     according to the specified network model.
