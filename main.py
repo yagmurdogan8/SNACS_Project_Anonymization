@@ -49,12 +49,23 @@ def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
     ------
     the generated graph
     """
-    edges = int((avg_degree * size) / 2.000)  # compute the needed number of edges
-    if name_model == 'er':
-        return pymnet.models.er(size, edges=[edges])  # a pymnet function to generate a ER network
-    if name_model == 'ws':
-        return pymnet.models.ws(size, [edges], p=model_par_prob[0])  # a pymnet function to generate a WS network
+    # edges = int((avg_degree * size) / 2.000)  # compute the needed number of edges
+    # if name_model == 'er':
+    #     return pymnet.models.er(size, edges=[edges])  # a pymnet function to generate a ER network
+    # if name_model == 'ws':
+    #     return pymnet.models.ws(size, [edges], p=model_par_prob[0])  # a pymnet function to generate a WS network
+    if name_model == 'random':
+        edges = int((avg_degree * size) / 2.000)
+        return pymnet.models.er(size, edges=[edges])
 
+    elif name_model in ['er', 'ws']:
+        if not model_par_prob:
+            raise ValueError("model_par_prob must be provided for 'er' or 'ws' models.")
+        file_path = model_par_prob[0]
+        return readNetworkFromRLD(file_path)
+
+    else:
+        raise ValueError("Invalid network model name. Supported names are 'random', 'er', and 'ws'.")
 
 def compute_uniqueness(net):
     """ This function computes the percentage of unique structures in a network (with one layers).
