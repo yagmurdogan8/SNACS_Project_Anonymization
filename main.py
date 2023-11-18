@@ -29,6 +29,8 @@ def readNetworkFromRLD(file_path):
 
     RDatasetGraph = nx.Graph(edges)
     return RDatasetGraph
+
+
 def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
     """ This function generates a random network with a given size and average dedgree
     according to the specified network model.
@@ -66,6 +68,7 @@ def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
 
     else:
         raise ValueError("Invalid network model name. Supported names are 'random', 'er', and 'ws'.")
+
 
 def compute_uniqueness(net):
     """ This function computes the percentage of unique structures in a network (with one layers).
