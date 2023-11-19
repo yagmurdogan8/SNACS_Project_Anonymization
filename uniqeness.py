@@ -57,17 +57,20 @@ def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
 def compute_uniqueness(net):
     """ This function computes the percentage of unique structures in a network (with one layers).
     It extracts the neighborhood of every node and maps them to an isomorphism class,
-    represented by complete graph invariant (equivalent to a canonical labelling).
+    represented by complete graph invariant (equivalent to a canonical labeling).
     It then stores the number of neighborhoods for each isomorphism class
-    (in a dictionary with the complete invariant as a key), and return the number of classes occcuring just one time
+    (in a dictionary with the complete invariant as a key), and return the number of classes occurring just one time
 
     Parameters
     ----------
     net : Multilayer network (also single-layer networks are acceptable)
         the network
 
-    Returns -------- float the percentage of unique neighborhoods in the graph (e.g.: 1.00 if all the neighborhoods
-    have unique structures, 0.00 if there no unique structures)
+    Returns
+    --------
+    float
+        the percentage of unique neighborhoods in the graph (e.g., 1.00 if all the neighborhoods
+        have unique structures, 0.00 if there no unique structures)
     """
     dic_layer_1_neigh = {}
     for n in list(net):
@@ -93,10 +96,14 @@ def compute_uniqueness(net):
             dic_count_n[compl_inv_n] = 1
 
     count_n = 0
-    for k in dic_count_n.keys():
-        if dic_count_n[k] == 1:
-            count_n += 1
-    return float(count_n) / float(len(list(net)))
+    total_neighborhoods = float(len(list(net)))
+    if total_neighborhoods > 0:
+        for k in dic_count_n.keys():
+            if dic_count_n[k] == 1:
+                count_n += 1
+        return float(count_n) / total_neighborhoods
+    else:
+        return 0.0
 
 
 def computeUniquenessInNetwork(size, name_model, deg, par=None):
