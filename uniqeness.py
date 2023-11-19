@@ -32,7 +32,7 @@ def readNetworkFromRLD(directory_path):
             lines = file.readlines()[2:]  # Skip the first line (header)
             for line in file:
                 try:
-                    edge = tuple(map(int, line.strip().split()))
+                    edge = tuple(map(int, line.strip().split("\t")))
                     edges.append(edge)
                 except ValueError:
                     print(f"Skipping line with non-integer values: {line.strip()}")
