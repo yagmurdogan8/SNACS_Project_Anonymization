@@ -159,104 +159,165 @@ def containedInInterval(value, low, up, tolerance=0):
                                                                           up) or containedInInterval(value + tolerance,
                                                                                                      low, up)
 
+
 def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_par_prob=None, tolerance_threshold=0.05,
                        n_decisions=0, z_value=2.58, single_sim_number=10, max_sim=50):
-    meanvalue, mean_conf_lower, mean_conf_upper, reachedLimit = evaluate(middlevalue,
-                                                                         simulation_list=[])  # evaluate the middle value
-    # ...
-    low_extreme, up_extreme = (lowervalue, middlevalue) if (meanvalue > uniqval) else (middlevalue, uppervalue)
-    return binarySearchUnique(low_extreme, up_extreme, uniqval, size, name_model, model_par=model_par,
-                              n_decisions=n_decisions + 1, z_value=z_value)
-
-    def doSimulations(deg, sim_number=single_sim_number, simulation_list=[]):
-        """ This function performs the simulation (i.e. generates a network with a given average degree) a specified
-        number of times and compute the number of unique neighborhoods for each of those. It returns the mean and the
-        confidence interval of the results. If previous simulation were carried out, a list with the corresponding
-        uniqueness results can be passed as a parameter
-        """
-        for i in range(0, sim_number):  # run the simulations
-            count_n = computeUniquenessInNetwork(size, name_model, deg, model_par)  # compute the uniqueness value
-            simulation_list.append(count_n)  # add the computed value to the ones in the list
-        mean, std_dev = np.mean(simulation_list), np.std(simulation_list)  # compute the mean and the standard deviation
-        s_error = std_dev / np.sqrt(sim_number)  # compute the standard error
-        return mean, mean - std_dev * z_value, mean + std_dev * z_value  # return the mean, the lower and upper
-        # values of the confidence interval at confidence level corresponding to z-value
-
     def evaluate(deg, sim_number=single_sim_number, simulation_list=[]):
-        """ This function computes the uniqueness of a network with a given average degree and checks if more
-        simulation are needed or not, in order to be confident (at 99% confidence level) that the value of the
-        average degree is or is not the one we are looking for.
-        """
         mean, mean_conf_lower, mean_conf_upper = doSimulations(deg, sim_number=sim_number,
                                                                simulation_list=simulation_list)
-        # if the target value is contained in the confidence interval (but the mean value it's not), then we need to
-        # do more simulations
-        if (containedInInterval(uniqval, mean_conf_lower, mean_conf_upper, tolerance=tolerance_threshold) and \
-            not containedInInterval(mean, uniqval - tolerance_threshold, uniqval + tolerance_threshold)) and \
+        if (containedInInterval(uniqval, mean_conf_lower, mean_conf_upper, tolerance=tolerance_threshold) and
+                not containedInInterval(mean, uniqval - tolerance_threshold, uniqval + tolerance_threshold)) and \
                 len(simulation_list) < max_sim:
             return evaluate(deg, sim_number=3, simulation_list=simulation_list)
-        else:  # return the mean and the computed confidence interval extremes, and a boolean value indicating
-            # whether the maximum limit of simulation has been reached
+        else:
             return mean, mean_conf_lower, mean_conf_upper, (len(simulation_list) >= max_sim)
 
+    def doSimulations(deg, sim_number=single_sim_number, simulation_list=[]):
+        for i in range(0, sim_number):
+            count_n = computeUniquenessInNetwork(size, name_model, deg, model_par_prob)
+            simulation_list.append(count_n)
+        mean, std_dev = np.mean(simulation_list), np.std(simulation_list)
+        s_error = std_dev / np.sqrt(sim_number)
+        return mean, mean - std_dev * z_value, mean + std_dev * z_value
+
     def endEvaluation(mean_conf_lower, mean_conf_upper, middlevalue, n_decisions, lowervalue, uppervalue):
-        """ This function evaluates if a result reached at the end of the searching process is acceptable or not. The
-        function is called when the maximum number of simulations has been reached or when the two extremes values
-        are close to each other. If the uniqueness value (with the tolerance level) is within the confidence interval
-        of the so far computed mean, then the result is acceptable. Otherwise the method fails.
-        """
-        # if the target value (plus or minus the tolerance) is contained in the interval, then return the middle
-        # value, otherwise the method fails
         if containedInInterval(uniqval, mean_conf_lower, mean_conf_upper, tolerance=tolerance_threshold):
             return middlevalue, n_decisions + 1, lowervalue, uppervalue
         else:
-            print
-            "Method failed"
+            print("Method failed")
             return -1, -1, -1, -1
 
-    # check if the extremes of the interval and the targeted uniqueness value are valid
-    if lowervalue < 0 or uppervalue < 0 or uppervalue < lowervalue or uppervalue > (
-            size - 1):  # the uppervalue cannot be greater than the maximum allowed degree
-        print
-        "Error: extreme values not valid"
+    if lowervalue < 0 or uppervalue < 0 or uppervalue < lowervalue or uppervalue > (size - 1):
+        print("Error: extreme values not valid")
         return -1, -1, -1, -1
     elif uniqval <= 0 or uniqval >= 1:
-        print
-        "Targeted uniqueness value not valid: give a target value greater than 0 and lower than 1"
+        print("Targeted uniqueness value not valid: give a target value greater than 0 and lower than 1")
         return -1, -1, -1, -1
 
-    middlevalue = float(uppervalue + lowervalue) / 2.000  # compute the middle value (midpoint of the interval)
-    # if the two extreme values are very close to each other, evaluate the middle value. If it is not acceptable,
-    # the method fails.
+    middlevalue = float(uppervalue + lowervalue) / 2.0
+
     if (uppervalue - lowervalue) < 0.02:
         mean, mean_conf_lower, mean_conf_upper = doSimulations(middlevalue,
-                                                               sim_number=single_sim_number)  # simulate with the
-        # middle value
+                                                               sim_number=single_sim_number)
         return endEvaluation(mean_conf_lower, mean_conf_upper, middlevalue, n_decisions, lowervalue, uppervalue)
 
-    if n_decisions == 0:  # at the beginning, we need to evaluate the extreme values of the interval to check if they
-        # are the values we are looking for
+    if n_decisions == 0:
         for val in [lowervalue, uppervalue]:
             mean_val, mean_conf_lower, mean_conf_upper, reachedLimit = evaluate(lowervalue, simulation_list=[])
             if containedInInterval(mean_val, uniqval - tolerance_threshold, uniqval + tolerance_threshold):
                 return val, n_decisions + 1, lowervalue, uppervalue
-            if reachedLimit == True:
+            if reachedLimit:
                 return endEvaluation(mean_conf_lower, mean_conf_upper, val, n_decisions, lowervalue, uppervalue)
 
-    meanvalue, mean_conf_lower, mean_conf_upper, reachedLimit = evaluate(middlevalue,
-                                                                         simulation_list=[])  # evaluate the middle value
-    # does the confidence interval contain the uniqueness value we are looking for? If yes, we are done. Otherwise,
-    # if the maximum limit of simulation has not been reached in the previous evaluation, we need to make a decision
-    # where to move with the binary search
+    meanvalue, mean_conf_lower, mean_conf_upper, reachedLimit = evaluate(middlevalue, simulation_list=[])
+
     if containedInInterval(meanvalue, uniqval - tolerance_threshold, uniqval + tolerance_threshold):
         return middlevalue, n_decisions + 1, lowervalue, uppervalue
-    elif reachedLimit == True:
+    elif reachedLimit:
         return endEvaluation(mean_conf_lower, mean_conf_upper, middlevalue, n_decisions, lowervalue, uppervalue)
-    else:  # make a decision about where to move with the binary search
+    else:
         low_extreme, up_extreme = (lowervalue, middlevalue) if (meanvalue > uniqval) else (middlevalue, uppervalue)
-        return binarySearchUnique(low_extreme, up_extreme, uniqval, size, name_model, model_par=model_par,
+        return binarySearchUnique(low_extreme, up_extreme, uniqval, size, name_model, model_par_prob=model_par_prob,
                                   n_decisions=n_decisions + 1, z_value=z_value)
 
+# def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_par_prob=None, tolerance_threshold=0.05,
+#                        n_decisions=0, z_value=2.58, single_sim_number=10, max_sim=50):
+#     meanvalue, mean_conf_lower, mean_conf_upper, reachedLimit = evaluate(middlevalue,
+#                                                                          simulation_list=[])  # evaluate the middle value
+#     # ...
+#     low_extreme, up_extreme = (lowervalue, middlevalue) if (meanvalue > uniqval) else (middlevalue, uppervalue)
+#     return binarySearchUnique(low_extreme, up_extreme, uniqval, size, name_model, model_par=model_par,
+#                               n_decisions=n_decisions + 1, z_value=z_value)
+#
+#     def doSimulations(deg, sim_number=single_sim_number, simulation_list=[]):
+#         """ This function performs the simulation (i.e. generates a network with a given average degree) a specified
+#         number of times and compute the number of unique neighborhoods for each of those. It returns the mean and the
+#         confidence interval of the results. If previous simulation were carried out, a list with the corresponding
+#         uniqueness results can be passed as a parameter
+#         """
+#         for i in range(0, sim_number):  # run the simulations
+#             count_n = computeUniquenessInNetwork(size, name_model, deg, model_par)  # compute the uniqueness value
+#             simulation_list.append(count_n)  # add the computed value to the ones in the list
+#         mean, std_dev = np.mean(simulation_list), np.std(simulation_list)  # compute the mean and the standard deviation
+#         s_error = std_dev / np.sqrt(sim_number)  # compute the standard error
+#         return mean, mean - std_dev * z_value, mean + std_dev * z_value  # return the mean, the lower and upper
+#         # values of the confidence interval at confidence level corresponding to z-value
+#
+#     def evaluate(deg, sim_number=single_sim_number, simulation_list=[]):
+#         """ This function computes the uniqueness of a network with a given average degree and checks if more
+#         simulation are needed or not, in order to be confident (at 99% confidence level) that the value of the
+#         average degree is or is not the one we are looking for.
+#         """
+#         mean, mean_conf_lower, mean_conf_upper = doSimulations(deg, sim_number=sim_number,
+#                                                                simulation_list=simulation_list)
+#         # if the target value is contained in the confidence interval (but the mean value it's not), then we need to
+#         # do more simulations
+#         if (containedInInterval(uniqval, mean_conf_lower, mean_conf_upper, tolerance=tolerance_threshold) and \
+#             not containedInInterval(mean, uniqval - tolerance_threshold, uniqval + tolerance_threshold)) and \
+#                 len(simulation_list) < max_sim:
+#             return evaluate(deg, sim_number=3, simulation_list=simulation_list)
+#         else:  # return the mean and the computed confidence interval extremes, and a boolean value indicating
+#             # whether the maximum limit of simulation has been reached
+#             return mean, mean_conf_lower, mean_conf_upper, (len(simulation_list) >= max_sim)
+#
+#     def endEvaluation(mean_conf_lower, mean_conf_upper, middlevalue, n_decisions, lowervalue, uppervalue):
+#         """ This function evaluates if a result reached at the end of the searching process is acceptable or not. The
+#         function is called when the maximum number of simulations has been reached or when the two extremes values
+#         are close to each other. If the uniqueness value (with the tolerance level) is within the confidence interval
+#         of the so far computed mean, then the result is acceptable. Otherwise the method fails.
+#         """
+#         # if the target value (plus or minus the tolerance) is contained in the interval, then return the middle
+#         # value, otherwise the method fails
+#         if containedInInterval(uniqval, mean_conf_lower, mean_conf_upper, tolerance=tolerance_threshold):
+#             return middlevalue, n_decisions + 1, lowervalue, uppervalue
+#         else:
+#             print
+#             "Method failed"
+#             return -1, -1, -1, -1
+#
+#     # check if the extremes of the interval and the targeted uniqueness value are valid
+#     if lowervalue < 0 or uppervalue < 0 or uppervalue < lowervalue or uppervalue > (
+#             size - 1):  # the uppervalue cannot be greater than the maximum allowed degree
+#         print
+#         "Error: extreme values not valid"
+#         return -1, -1, -1, -1
+#     elif uniqval <= 0 or uniqval >= 1:
+#         print
+#         "Targeted uniqueness value not valid: give a target value greater than 0 and lower than 1"
+#         return -1, -1, -1, -1
+#
+#     middlevalue = float(uppervalue + lowervalue) / 2.000  # compute the middle value (midpoint of the interval)
+#     # if the two extreme values are very close to each other, evaluate the middle value. If it is not acceptable,
+#     # the method fails.
+#     if (uppervalue - lowervalue) < 0.02:
+#         mean, mean_conf_lower, mean_conf_upper = doSimulations(middlevalue,
+#                                                                sim_number=single_sim_number)  # simulate with the
+#         # middle value
+#         return endEvaluation(mean_conf_lower, mean_conf_upper, middlevalue, n_decisions, lowervalue, uppervalue)
+#
+#     if n_decisions == 0:  # at the beginning, we need to evaluate the extreme values of the interval to check if they
+#         # are the values we are looking for
+#         for val in [lowervalue, uppervalue]:
+#             mean_val, mean_conf_lower, mean_conf_upper, reachedLimit = evaluate(lowervalue, simulation_list=[])
+#             if containedInInterval(mean_val, uniqval - tolerance_threshold, uniqval + tolerance_threshold):
+#                 return val, n_decisions + 1, lowervalue, uppervalue
+#             if reachedLimit == True:
+#                 return endEvaluation(mean_conf_lower, mean_conf_upper, val, n_decisions, lowervalue, uppervalue)
+#
+#     meanvalue, mean_conf_lower, mean_conf_upper, reachedLimit = evaluate(middlevalue,
+#                                                                          simulation_list=[])  # evaluate the middle value
+#     # does the confidence interval contain the uniqueness value we are looking for? If yes, we are done. Otherwise,
+#     # if the maximum limit of simulation has not been reached in the previous evaluation, we need to make a decision
+#     # where to move with the binary search
+#     if containedInInterval(meanvalue, uniqval - tolerance_threshold, uniqval + tolerance_threshold):
+#         return middlevalue, n_decisions + 1, lowervalue, uppervalue
+#     elif reachedLimit == True:
+#         return endEvaluation(mean_conf_lower, mean_conf_upper, middlevalue, n_decisions, lowervalue, uppervalue)
+#     else:  # make a decision about where to move with the binary search
+#         low_extreme, up_extreme = (lowervalue, middlevalue) if (meanvalue > uniqval) else (middlevalue, uppervalue)
+#         return binarySearchUnique(low_extreme, up_extreme, uniqval, size, name_model, model_par=model_par,
+#                                   n_decisions=n_decisions + 1, z_value=z_value)
+#
 
 #
 # def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_par=None, tolerance_threshold=0.05,
