@@ -86,16 +86,15 @@ def readNetworkFromRLD(directory_path):
 
 def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
     if name_model == 'random':
-        edges = int((avg_degree * size) / 2.0)
+        edges = int((avg_degree * size) / 2.000)
         return pymnet.models.er(size, edges=[edges])
     elif name_model in ['er', 'ws']:
         if not model_par_prob:
             raise ValueError("model_par_prob must be provided for 'er' or 'ws' models.")
-        file_path = model_par_prob[0]
-        return readNetworkFromRLD(file_path)
+        directory_path = model_par_prob[0]
+        return readNetworkFromRLD(directory_path)
     else:
         raise ValueError("Invalid network model name. Supported names are 'random', 'er', and 'ws'.")
-
 
 def compute_uniqueness(net):
     """ This function computes the percentage of unique structures in a network (with one layers).
@@ -382,7 +381,7 @@ if __name__ == "__main__":
     name_model = "er"
     confidence_level, z_value = 0.99, 2.58
     deg, n_decisions, lowervalue, uppervalue = binarySearchUnique(deg_low_value, deg_up_value, target_uniqueness_value,
-                                                                  net_size, name_model, model_par_prob=[file_path],
+                                                                  net_size, name_model, model_par_prob=[directory_path],
                                                                   z_value=z_value)
     print("The average degree value that gives an " + str(name_model) + " network with " + str(
         net_size) + " nodes and with " + str(target_uniqueness_value) + " uniqueness is: " + str(deg))
