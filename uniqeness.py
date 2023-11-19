@@ -40,6 +40,7 @@ def readNetworkFromRLD(directory_path):
     RDatasetGraph = nx.Graph(edges)
     return RDatasetGraph
 
+
 def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
     if name_model == 'random':
         edges = int((avg_degree * size) / 2.000)
@@ -51,6 +52,7 @@ def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
         return readNetworkFromRLD(directory_path)
     else:
         raise ValueError("Invalid network model name. Supported names are 'random', 'er', and 'ws'.")
+
 
 def compute_uniqueness(net):
     """ This function computes the percentage of unique structures in a network (with one layers).
@@ -191,6 +193,7 @@ def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_
         low_extreme, up_extreme = (lowervalue, middlevalue) if (meanvalue > uniqval) else (middlevalue, uppervalue)
         return binarySearchUnique(low_extreme, up_extreme, uniqval, size, name_model, model_par_prob=model_par_prob,
                                   n_decisions=n_decisions + 1, z_value=z_value)
+
 
 if __name__ == "__main__":
     target_uniqueness_value = 0.5
