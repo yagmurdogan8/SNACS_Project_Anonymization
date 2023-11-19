@@ -29,7 +29,13 @@ def readNetworkFromRLD(directory_path):
     for filename in os.listdir(directory_path):
         filepath = os.path.join(directory_path, filename)
         with open(filepath, 'r') as file:
-            edges.extend([tuple(map(int, line.strip().split())) for line in file])
+            next(file)  # Skip the header line if there is any
+            for line in file:
+                try:
+                    edge = tuple(map(int, line.strip().split()))
+                    edges.append(edge)
+                except ValueError:
+                    print(f"Skipping line with non-integer values: {line.strip()}")
 
     RDatasetGraph = nx.Graph(edges)
     return RDatasetGraph
