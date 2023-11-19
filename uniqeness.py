@@ -191,3 +191,17 @@ def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_
         low_extreme, up_extreme = (lowervalue, middlevalue) if (meanvalue > uniqval) else (middlevalue, uppervalue)
         return binarySearchUnique(low_extreme, up_extreme, uniqval, size, name_model, model_par_prob=model_par_prob,
                                   n_decisions=n_decisions + 1, z_value=z_value)
+
+if __name__ == "__main__":
+    target_uniqueness_value = 0.5
+    net_size = 1000
+    deg_low_value, deg_up_value = 2.0, 90.0
+    name_model = "er"
+    confidence_level, z_value = 0.99, 2.58
+    deg, n_decisions, lowervalue, uppervalue = binarySearchUnique(deg_low_value, deg_up_value, target_uniqueness_value,
+                                                                  net_size, name_model, model_par_prob=[directory_path],
+                                                                  z_value=z_value)
+    print("The average degree value that gives an " + str(name_model) + " network with " + str(
+        net_size) + " nodes and with " + str(target_uniqueness_value) + " uniqueness is: " + str(deg))
+    print("Probability of correct evaluation: " + str(confidence_level ** n_decisions))
+    print("Extremes of the final interval: ", lowervalue, uppervalue)
