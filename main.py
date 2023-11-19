@@ -159,42 +159,8 @@ def containedInInterval(value, low, up, tolerance=0):
                                                                           up) or containedInInterval(value + tolerance,
                                                                                                      low, up)
 
-
-def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_par=None, tolerance_threshold=0.05,
+def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_par_prob=None, tolerance_threshold=0.05,
                        n_decisions=0, z_value=2.58, single_sim_number=10, max_sim=50):
-    """ This function performs a binary search (continuos version), looking for an average degree value for a given
-    network model, with which the network would have a certain percentage of unique neighborhoods' structure (with a
-    given tolerance threshold). The delimiting average degree values are given. To estimate the uniqueness value in a
-    network model corresponding to a given average degree, the function performs simulations by generating random
-    graphs according to the specified model.
-
-    Parameters ---------- lowervalue : int or float lower value of average degree delimiting the interval in which
-    the binary search is performed uppervalue : int or float upper value of average degree delimiting the interval in
-    which the binary search is performed size : int network size (number of nodes in the graph) name_model : str name
-    of the graph model we want to evaluate model_par : list parameters of the graph model uniqval : float the target
-    uniqueness value tolerance_threshold: float the tolerance value for uniqueness (e.g. if we are looking for 0.5
-    uniqueness, 0.5-tolerance_threshold or 0.5+tolerance_threshold are also fine) n_decisions : int number of
-    decisions already taken in the previous calls of the algorithm z_value: float z-value corresponding to a certain
-    confidence level (the confidence level we want to make decisions with) single_sim_number : int number of initial
-    simulations (graphs generation) to perform for each degree value's evaluation max_sim : int maximum simulation
-    numbers for each degree value to evaluate
-
-    Returns
-    --------
-    deg: float
-        the average degree value corresponding to the target uniqueness value
-    n_decisions: int
-        number of decisions taken at the end of the binary search process
-    lowervalue: int or float
-        lower extreme of the last evaluated interval in the binary search process
-    uppervalue: int or float
-        upper extreme of the last evaluated interval in the binary search process
-
-    Notes ------ The method can fail if the given extremes value are not valid or if the degree value corresponding
-    to the targeted uniqueness is not found. In this case it returns -1, -1, -1, -1. The target uniqueness value
-    should be greater than 0 and lower than 1, since there is a wide region where the graph has no or all unique
-    neighborhoods, and a single average degree value cannot be determined.
-    """
     meanvalue, mean_conf_lower, mean_conf_upper, reachedLimit = evaluate(middlevalue,
                                                                          simulation_list=[])  # evaluate the middle value
     # ...
@@ -291,6 +257,45 @@ def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_
         return binarySearchUnique(low_extreme, up_extreme, uniqval, size, name_model, model_par=model_par,
                                   n_decisions=n_decisions + 1, z_value=z_value)
 
+
+#
+# def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_par=None, tolerance_threshold=0.05,
+#                        n_decisions=0, z_value=2.58, single_sim_number=10, max_sim=50):
+#     """ This function performs a binary search (continuos version), looking for an average degree value for a given
+#     network model, with which the network would have a certain percentage of unique neighborhoods' structure (with a
+#     given tolerance threshold). The delimiting average degree values are given. To estimate the uniqueness value in a
+#     network model corresponding to a given average degree, the function performs simulations by generating random
+#     graphs according to the specified model.
+#
+#     Parameters ---------- lowervalue : int or float lower value of average degree delimiting the interval in which
+#     the binary search is performed uppervalue : int or float upper value of average degree delimiting the interval in
+#     which the binary search is performed size : int network size (number of nodes in the graph) name_model : str name
+#     of the graph model we want to evaluate model_par : list parameters of the graph model uniqval : float the target
+#     uniqueness value tolerance_threshold: float the tolerance value for uniqueness (e.g. if we are looking for 0.5
+#     uniqueness, 0.5-tolerance_threshold or 0.5+tolerance_threshold are also fine) n_decisions : int number of
+#     decisions already taken in the previous calls of the algorithm z_value: float z-value corresponding to a certain
+#     confidence level (the confidence level we want to make decisions with) single_sim_number : int number of initial
+#     simulations (graphs generation) to perform for each degree value's evaluation max_sim : int maximum simulation
+#     numbers for each degree value to evaluate
+#
+#     Returns
+#     --------
+#     deg: float
+#         the average degree value corresponding to the target uniqueness value
+#     n_decisions: int
+#         number of decisions taken at the end of the binary search process
+#     lowervalue: int or float
+#         lower extreme of the last evaluated interval in the binary search process
+#     uppervalue: int or float
+#         upper extreme of the last evaluated interval in the binary search process
+#
+#     Notes ------ The method can fail if the given extremes value are not valid or if the degree value corresponding
+#     to the targeted uniqueness is not found. In this case it returns -1, -1, -1, -1. The target uniqueness value
+#     should be greater than 0 and lower than 1, since there is a wide region where the graph has no or all unique
+#     neighborhoods, and a single average degree value cannot be determined.
+#     """
+#
+
 if __name__ == "__main__":
     target_uniqueness_value = 0.5
     net_size = 1000
@@ -298,7 +303,7 @@ if __name__ == "__main__":
     name_model = "er"
     confidence_level, z_value = 0.99, 2.58
     deg, n_decisions, lowervalue, uppervalue = binarySearchUnique(deg_low_value, deg_up_value, target_uniqueness_value,
-                                                                  net_size, name_model, z_value=z_value)
+                                                                  net_size, name_model, model_par_prob=[file_path], z_value=z_value)
     print("The average degree value that gives an " + str(name_model) + " network with " + str(
         net_size) + " nodes and with " + str(target_uniqueness_value) + " uniqueness is: " + str(deg))
     print("Probability of correct evaluation: " + str(confidence_level ** n_decisions))
