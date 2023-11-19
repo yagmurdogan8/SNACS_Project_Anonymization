@@ -31,44 +31,54 @@ def readNetworkFromRLD(file_path):
     return RDatasetGraph
 
 
+# def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
+#     """ This function generates a random network with a given size and average dedgree
+#     according to the specified network model.
+#
+#     Parameters
+#     ----------
+#     size : int
+#         size of the network
+#     name_model : str
+#         name of the network model
+#     avg_degree : int or float
+#         average degree of the network
+#     model_par_prob : list
+#         list with the parameters of the model (e.g. probability of having an edge for Erdos-Renyi (ER) model,
+#         or probability of rewiring for Watts-Strogatz (WS) model)
+#
+#     Returns
+#     ------
+#     the generated graph
+#     """
+#     # edges = int((avg_degree * size) / 2.000)  # compute the needed number of edges
+#     # if name_model == 'er':
+#     #     return pymnet.models.er(size, edges=[edges])  # a pymnet function to generate a ER network
+#     # if name_model == 'ws':
+#     #     return pymnet.models.ws(size, [edges], p=model_par_prob[0])  # a pymnet function to generate a WS network
+#     if name_model == 'random':
+#         edges = int((avg_degree * size) / 2.000)
+#         return pymnet.models.er(size, edges=[edges])
+#     elif name_model in ['er', 'ws']:
+#         if not model_par_prob:
+#             raise ValueError("model_par_prob must be provided for 'er' or 'ws' models.")
+#         file_path = model_par_prob[0]
+#         return readNetworkFromRLD(file_path)
+#     else:
+#         raise ValueError("Invalid network model name. Supported names are 'random', 'er', and 'ws'.")
+#
+
 def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
-    """ This function generates a random network with a given size and average dedgree
-    according to the specified network model.
-
-    Parameters
-    ----------
-    size : int
-        size of the network
-    name_model : str
-        name of the network model
-    avg_degree : int or float
-        average degree of the network
-    model_par_prob : list
-        list with the parameters of the model (e.g. probability of having an edge for Erdos-Renyi (ER) model,
-        or probability of rewiring for Watts-Strogatz (WS) model)
-
-    Returns
-    ------
-    the generated graph
-    """
-    # edges = int((avg_degree * size) / 2.000)  # compute the needed number of edges
-    # if name_model == 'er':
-    #     return pymnet.models.er(size, edges=[edges])  # a pymnet function to generate a ER network
-    # if name_model == 'ws':
-    #     return pymnet.models.ws(size, [edges], p=model_par_prob[0])  # a pymnet function to generate a WS network
     if name_model == 'random':
         edges = int((avg_degree * size) / 2.000)
         return pymnet.models.er(size, edges=[edges])
-
     elif name_model in ['er', 'ws']:
         if not model_par_prob:
             raise ValueError("model_par_prob must be provided for 'er' or 'ws' models.")
         file_path = model_par_prob[0]
         return readNetworkFromRLD(file_path)
-
     else:
         raise ValueError("Invalid network model name. Supported names are 'random', 'er', and 'ws'.")
-
 
 def compute_uniqueness(net):
     """ This function computes the percentage of unique structures in a network (with one layers).
@@ -85,39 +95,34 @@ def compute_uniqueness(net):
     Returns -------- float the percentage of unique neighborhoods in the graph (e.g.: 1.00 if all the neighborhoods
     have unique structures, 0.00 if there no unique structures)
     """
-    dic_layer_1_neigh = {}  # dictionary to store the list of neighbors for every node
-    for n in list(net):  # list of nodes
+    dic_layer_1_neigh = {}
+    for n in list(net):
         dic_layer_1_neigh[n] = []
 
-    # store the list of neighbors of every node
     for e in list(net.edges):
         if e[0] != e[1]:
             dic_layer_1_neigh[e[0]].append(e[1])
             dic_layer_1_neigh[e[1]].append(e[0])
 
-    dic_count_n = {}  # dictionary to store the number of occurences for each isomorphism class
-    for k in dic_layer_1_neigh.keys():  # go through all nodes
-        neigh_net = pymnet.MultilayerNetwork(
-            aspects=0)  # create a temporary network to store the neighborhood of a node
-        for neigh in dic_layer_1_neigh[k]:  # go through the neighbors
-            for sec_neigh in dic_layer_1_neigh[neigh]:  # go trough the neighbors of the neighbor
-                if sec_neigh in dic_layer_1_neigh[k]:  # if the node
-                    neigh_net[neigh, sec_neigh] = 1  # this adds an edge between the two nodes
+    dic_count_n = {}
+    for k in dic_layer_1_neigh.keys():
+        neigh_net = pymnet.MultilayerNetwork(aspects=0)
+        for neigh in dic_layer_1_neigh[k]:
+            for sec_neigh in dic_layer_1_neigh[neigh]:
+                if sec_neigh in dic_layer_1_neigh[k]:
+                    neigh_net[neigh, sec_neigh] = 1
 
-        compl_inv_n = str(pymnet.get_complete_invariant(neigh_net))  # compute the complete invariant
-        # increment the count of isomorphism classes
+        compl_inv_n = str(pymnet.get_complete_invariant(neigh_net))
         try:
             dic_count_n[compl_inv_n] += 1
         except KeyError as e:
             dic_count_n[compl_inv_n] = 1
 
-    # count the number of classes occurring one single time
     count_n = 0
     for k in dic_count_n.keys():
         if dic_count_n[k] == 1:
             count_n += 1
-    return float(count_n) / float(len(list(net)))  # dividing the number of unique neighborhoods by the number of
-    # nodes in the network (such as the total number of neighborhoods)
+    return float(count_n) / float(len(list(net)))
 
 
 def computeUniquenessInNetwork(size, name_model, deg, par=None):
@@ -190,6 +195,12 @@ def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_
     should be greater than 0 and lower than 1, since there is a wide region where the graph has no or all unique
     neighborhoods, and a single average degree value cannot be determined.
     """
+    meanvalue, mean_conf_lower, mean_conf_upper, reachedLimit = evaluate(middlevalue,
+                                                                         simulation_list=[])  # evaluate the middle value
+    # ...
+    low_extreme, up_extreme = (lowervalue, middlevalue) if (meanvalue > uniqval) else (middlevalue, uppervalue)
+    return binarySearchUnique(low_extreme, up_extreme, uniqval, size, name_model, model_par=model_par,
+                              n_decisions=n_decisions + 1, z_value=z_value)
 
     def doSimulations(deg, sim_number=single_sim_number, simulation_list=[]):
         """ This function performs the simulation (i.e. generates a network with a given average degree) a specified
@@ -280,21 +291,33 @@ def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_
         return binarySearchUnique(low_extreme, up_extreme, uniqval, size, name_model, model_par=model_par,
                                   n_decisions=n_decisions + 1, z_value=z_value)
 
-
-# main function example
 if __name__ == "__main__":
-    target_uniqueness_value = 0.5  # 0.5 corresponds to 50% neighborhoods uniqueness
-    net_size = 1000  # number of nodes in the network
-    deg_low_value, deg_up_value = 2.0, 90.0  # extremes of the interval (average degree values)
-    name_model = "er"  # Erdos-Renyi graph model (can also be "ws" for Watts-Strogatz graph)
-    # model_parameters = [0.3] #parameters of the graph model (not used for er graph)
-    confidence_level, z_value = 0.99, 2.58  # confidence level and corresponding z-value
+    target_uniqueness_value = 0.5
+    net_size = 1000
+    deg_low_value, deg_up_value = 2.0, 90.0
+    name_model = "er"
+    confidence_level, z_value = 0.99, 2.58
     deg, n_decisions, lowervalue, uppervalue = binarySearchUnique(deg_low_value, deg_up_value, target_uniqueness_value,
                                                                   net_size, name_model, z_value=z_value)
-    print
-    "The average degree value that gives a " + str(name_model) + " network with " + str(
-        net_size) + " nodes and with " + str(target_uniqueness_value) + " uniqueness is: " + str(deg)
-    print
-    "Probability of correct evaluation: " + str(confidence_level ** n_decisions)
-    print
-    "Extremes of the final interval: ", lowervalue, uppervalue
+    print("The average degree value that gives an " + str(name_model) + " network with " + str(
+        net_size) + " nodes and with " + str(target_uniqueness_value) + " uniqueness is: " + str(deg))
+    print("Probability of correct evaluation: " + str(confidence_level ** n_decisions))
+    print("Extremes of the final interval: ", lowervalue, uppervalue)
+
+# # main function example
+# if __name__ == "__main__":
+#     target_uniqueness_value = 0.5  # 0.5 corresponds to 50% neighborhoods uniqueness
+#     net_size = 1000  # number of nodes in the network
+#     deg_low_value, deg_up_value = 2.0, 90.0  # extremes of the interval (average degree values)
+#     name_model = "er"  # Erdos-Renyi graph model (can also be "ws" for Watts-Strogatz graph)
+#     # model_parameters = [0.3] #parameters of the graph model (not used for er graph)
+#     confidence_level, z_value = 0.99, 2.58  # confidence level and corresponding z-value
+#     deg, n_decisions, lowervalue, uppervalue = binarySearchUnique(deg_low_value, deg_up_value, target_uniqueness_value,
+#                                                                   net_size, name_model, z_value=z_value)
+#     print
+#     "The average degree value that gives a " + str(name_model) + " network with " + str(
+#         net_size) + " nodes and with " + str(target_uniqueness_value) + " uniqueness is: " + str(deg)
+#     print
+#     "Probability of correct evaluation: " + str(confidence_level ** n_decisions)
+#     print
+#     "Extremes of the final interval: ", lowervalue, uppervalue
