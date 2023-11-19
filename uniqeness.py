@@ -39,3 +39,155 @@ def readNetworkFromRLD(directory_path):
 
     RDatasetGraph = nx.Graph(edges)
     return RDatasetGraph
+
+def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
+    if name_model == 'random':
+        edges = int((avg_degree * size) / 2.000)
+        return pymnet.models.er(size, edges=[edges])
+    elif name_model in ['er', 'ws']:
+        if not model_par_prob:
+            raise ValueError("model_par_prob must be provided for 'er' or 'ws' models.")
+        directory_path = model_par_prob[0]
+        return readNetworkFromRLD(directory_path)
+    else:
+        raise ValueError("Invalid network model name. Supported names are 'random', 'er', and 'ws'.")
+
+def compute_uniqueness(net):
+    """ This function computes the percentage of unique structures in a network (with one layers).
+    It extracts the neighborhood of every node and maps them to an isomorphism class,
+    represented by complete graph invariant (equivalent to a canonical labelling).
+    It then stores the number of neighborhoods for each isomorphism class
+    (in a dictionary with the complete invariant as a key), and return the number of classes occcuring just one time
+
+    Parameters
+    ----------
+    net : Multilayer network (also single-layer networks are acceptable)
+        the network
+
+    Returns -------- float the percentage of unique neighborhoods in the graph (e.g.: 1.00 if all the neighborhoods
+    have unique structures, 0.00 if there no unique structures)
+    """
+    dic_layer_1_neigh = {}
+    for n in list(net):
+        dic_layer_1_neigh[n] = []
+
+    for e in list(net.edges):
+        if e[0] != e[1]:
+            dic_layer_1_neigh[e[0]].append(e[1])
+            dic_layer_1_neigh[e[1]].append(e[0])
+
+    dic_count_n = {}
+    for k in dic_layer_1_neigh.keys():
+        neigh_net = pymnet.MultilayerNetwork(aspects=0)
+        for neigh in dic_layer_1_neigh[k]:
+            for sec_neigh in dic_layer_1_neigh[neigh]:
+                if sec_neigh in dic_layer_1_neigh[k]:
+                    neigh_net[neigh, sec_neigh] = 1
+
+        compl_inv_n = str(pymnet.get_complete_invariant(neigh_net))
+        try:
+            dic_count_n[compl_inv_n] += 1
+        except KeyError as e:
+            dic_count_n[compl_inv_n] = 1
+
+    count_n = 0
+    for k in dic_count_n.keys():
+        if dic_count_n[k] == 1:
+            count_n += 1
+    return float(count_n) / float(len(list(net)))
+
+
+def computeUniquenessInNetwork(size, name_model, deg, par=None):
+    """ Function that generates a network and return the percentage of unique neighborhoods in it.
+
+    See also:
+    -------
+    generateNetwork : function to generate a random network from a given network model
+    compute_uniqueness : function to compute the percentage of unique structures in a network
+    """
+    net = generateNetwork(size, name_model, deg, par)
+    return compute_uniqueness(net)
+
+
+def containedInInterval(value, low, up, tolerance=0):
+    """ This function returns True if the given value (plus or minus a tolerance) is contained in the interval
+    delimited by low and up, and False otherwise.
+
+    Parameters
+    ----------
+    value : int or float
+        value to evaluate
+    low: int or float
+        lower extreme of the interval
+    up : int or float
+        upper extreme of the interval
+    tolerance: int or float
+        the tolerance level
+    """
+    if tolerance == 0:
+        return (True if (value >= low and value <= up) else False)
+    else:
+        return containedInInterval(value, low, up) or containedInInterval(value - tolerance, low,
+                                                                          up) or containedInInterval(value + tolerance,
+                                                                                                     low, up)
+
+
+def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_par_prob=None, tolerance_threshold=0.05,
+                       n_decisions=0, z_value=2.58, single_sim_number=10, max_sim=50):
+    def evaluate(deg, sim_number=single_sim_number, simulation_list=[]):
+        mean, mean_conf_lower, mean_conf_upper = doSimulations(deg, sim_number=sim_number,
+                                                               simulation_list=simulation_list)
+        if (containedInInterval(uniqval, mean_conf_lower, mean_conf_upper, tolerance=tolerance_threshold) and
+            not containedInInterval(mean, uniqval - tolerance_threshold, uniqval + tolerance_threshold)) and \
+                len(simulation_list) < max_sim:
+            return evaluate(deg, sim_number=3, simulation_list=simulation_list)
+        else:
+            return mean, mean_conf_lower, mean_conf_upper, (len(simulation_list) >= max_sim)
+
+    def doSimulations(deg, sim_number=single_sim_number, simulation_list=[]):
+        for i in range(0, sim_number):
+            count_n = computeUniquenessInNetwork(size, name_model, deg, model_par_prob)
+            simulation_list.append(count_n)
+        mean, std_dev = np.mean(simulation_list), np.std(simulation_list)
+        s_error = std_dev / np.sqrt(sim_number)
+        return mean, mean - std_dev * z_value, mean + std_dev * z_value
+
+    def endEvaluation(mean_conf_lower, mean_conf_upper, middlevalue, n_decisions, lowervalue, uppervalue):
+        if containedInInterval(uniqval, mean_conf_lower, mean_conf_upper, tolerance=tolerance_threshold):
+            return middlevalue, n_decisions + 1, lowervalue, uppervalue
+        else:
+            print("Method failed")
+            return -1, -1, -1, -1
+
+    if lowervalue < 0 or uppervalue < 0 or uppervalue < lowervalue or uppervalue > (size - 1):
+        print("Error: extreme values not valid")
+        return -1, -1, -1, -1
+    elif uniqval <= 0 or uniqval >= 1:
+        print("Targeted uniqueness value not valid: give a target value greater than 0 and lower than 1")
+        return -1, -1, -1, -1
+
+    middlevalue = float(uppervalue + lowervalue) / 2.0
+
+    if (uppervalue - lowervalue) < 0.02:
+        mean, mean_conf_lower, mean_conf_upper = doSimulations(middlevalue,
+                                                               sim_number=single_sim_number)
+        return endEvaluation(mean_conf_lower, mean_conf_upper, middlevalue, n_decisions, lowervalue, uppervalue)
+
+    if n_decisions == 0:
+        for val in [lowervalue, uppervalue]:
+            mean_val, mean_conf_lower, mean_conf_upper, reachedLimit = evaluate(lowervalue, simulation_list=[])
+            if containedInInterval(mean_val, uniqval - tolerance_threshold, uniqval + tolerance_threshold):
+                return val, n_decisions + 1, lowervalue, uppervalue
+            if reachedLimit:
+                return endEvaluation(mean_conf_lower, mean_conf_upper, val, n_decisions, lowervalue, uppervalue)
+
+    meanvalue, mean_conf_lower, mean_conf_upper, reachedLimit = evaluate(middlevalue, simulation_list=[])
+
+    if containedInInterval(meanvalue, uniqval - tolerance_threshold, uniqval + tolerance_threshold):
+        return middlevalue, n_decisions + 1, lowervalue, uppervalue
+    elif reachedLimit:
+        return endEvaluation(mean_conf_lower, mean_conf_upper, middlevalue, n_decisions, lowervalue, uppervalue)
+    else:
+        low_extreme, up_extreme = (lowervalue, middlevalue) if (meanvalue > uniqval) else (middlevalue, uppervalue)
+        return binarySearchUnique(low_extreme, up_extreme, uniqval, size, name_model, model_par_prob=model_par_prob,
+                                  n_decisions=n_decisions + 1, z_value=z_value)
