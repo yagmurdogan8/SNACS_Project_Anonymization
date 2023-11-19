@@ -179,7 +179,7 @@ def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_
         mean, mean_conf_lower, mean_conf_upper = doSimulations(deg, sim_number=sim_number,
                                                                simulation_list=simulation_list)
         if (containedInInterval(uniqval, mean_conf_lower, mean_conf_upper, tolerance=tolerance_threshold) and
-                not containedInInterval(mean, uniqval - tolerance_threshold, uniqval + tolerance_threshold)) and \
+            not containedInInterval(mean, uniqval - tolerance_threshold, uniqval + tolerance_threshold)) and \
                 len(simulation_list) < max_sim:
             return evaluate(deg, sim_number=3, simulation_list=simulation_list)
         else:
@@ -232,6 +232,7 @@ def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_
         low_extreme, up_extreme = (lowervalue, middlevalue) if (meanvalue > uniqval) else (middlevalue, uppervalue)
         return binarySearchUnique(low_extreme, up_extreme, uniqval, size, name_model, model_par_prob=model_par_prob,
                                   n_decisions=n_decisions + 1, z_value=z_value)
+
 
 # def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_par_prob=None, tolerance_threshold=0.05,
 #                        n_decisions=0, z_value=2.58, single_sim_number=10, max_sim=50):
@@ -377,7 +378,8 @@ if __name__ == "__main__":
     name_model = "er"
     confidence_level, z_value = 0.99, 2.58
     deg, n_decisions, lowervalue, uppervalue = binarySearchUnique(deg_low_value, deg_up_value, target_uniqueness_value,
-                                                                  net_size, name_model, model_par_prob=[file_path], z_value=z_value)
+                                                                  net_size, name_model, model_par_prob=[file_path],
+                                                                  z_value=z_value)
     print("The average degree value that gives an " + str(name_model) + " network with " + str(
         net_size) + " nodes and with " + str(target_uniqueness_value) + " uniqueness is: " + str(deg))
     print("Probability of correct evaluation: " + str(confidence_level ** n_decisions))
