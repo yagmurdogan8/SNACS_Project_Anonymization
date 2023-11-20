@@ -30,7 +30,7 @@ def readNetworkFromRLD(directory_path):
         filepath = os.path.join(directory_path, filename)
         with open(filepath, 'r') as file:
             lines = file.readlines()[2:]  # Skip the first line (header)
-            for line in file:
+            for line in lines:
                 try:
                     edge = tuple(map(int, line.strip().split("\t")))
                     edges.append(edge)
