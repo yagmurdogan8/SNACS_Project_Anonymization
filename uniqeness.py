@@ -54,7 +54,9 @@ def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
         return readNetworkFromRLD(directory_path)
     else:
         raise ValueError("Invalid network model name. Supported names are 'random', 'er', and 'ws'.")
-    print("Generated network:", net)
+
+    # Eğer 'random' veya 'er'/'ws' dışında bir model ismi kullanılırsa None döndürülecek.
+    return None
 
 def compute_uniqueness(net):
     """ This function computes the percentage of unique structures in a network (with one layers).
@@ -105,8 +107,8 @@ def compute_uniqueness(net):
                 count_n += 1
         return float(count_n) / total_neighborhoods
     else:
+        print("Count of unique neighborhoods:", count_n)
         return 0.0
-    print("Count of unique neighborhoods:", count_n)
 
 
 def computeUniquenessInNetwork(size, name_model, deg, par=None):
