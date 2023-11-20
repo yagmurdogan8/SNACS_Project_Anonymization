@@ -3,6 +3,8 @@ import pymnet  # library for handling networks (graphs) and multilayer networks.
 import networkx as nx
 import os
 
+import sys
+print(sys.path)
 """This code computes the average degree (average number of edges per node) of a random graph/network corresponding 
 to a given percentage of unique neighborhoods structures ("uniqueness"). It does that with the function called 
 "binarySearchUnique". There is also a main with an example of call of the function. The other functions are 
