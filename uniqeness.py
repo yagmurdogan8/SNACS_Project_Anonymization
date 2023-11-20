@@ -38,7 +38,9 @@ def readNetworkFromRLD(directory_path):
                     print(f"Skipping line with non-integer values: {line.strip()}")
 
     RDatasetGraph = nx.Graph(edges)
+    print("Edges from dataset:", edges)
     return RDatasetGraph
+
 
 
 def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
@@ -52,7 +54,7 @@ def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
         return readNetworkFromRLD(directory_path)
     else:
         raise ValueError("Invalid network model name. Supported names are 'random', 'er', and 'ws'.")
-
+    print("Generated network:", net)
 
 def compute_uniqueness(net):
     """ This function computes the percentage of unique structures in a network (with one layers).
@@ -104,6 +106,7 @@ def compute_uniqueness(net):
         return float(count_n) / total_neighborhoods
     else:
         return 0.0
+    print("Count of unique neighborhoods:", count_n)
 
 
 def computeUniquenessInNetwork(size, name_model, deg, par=None):
@@ -201,6 +204,7 @@ def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_
         return binarySearchUnique(low_extreme, up_extreme, uniqval, size, name_model, model_par_prob=model_par_prob,
                                   n_decisions=n_decisions + 1, z_value=z_value)
 
+    print("Binary search values:", lowervalue, uppervalue, middlevalue, meanvalue, n_decisions)
 
 if __name__ == "__main__":
     target_uniqueness_value = 0.5
