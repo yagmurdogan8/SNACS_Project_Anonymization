@@ -2,14 +2,14 @@ from setuptools import setup, Extension
 from os import path
 
 wd = path.abspath(path.dirname(__file__))
-with open(path.join(wd, 'README.md')) as f:
+with open(path.join(wd, 'pybliss-master/pybliss-master/README.md')) as f:
     long_description = f.read()
 
 USE_CYTHON = False
 
 ext = 'pyx' if USE_CYTHON else 'cpp'
 
-source_dir = 'src'
+source_dir = 'pybliss-master/pybliss-master/src'
 
 bliss_dir = source_dir + '/bliss-0.73.1'
 bliss_sources = ['defs.cc', 'graph.cc', 'heap.cc', 'orbit.cc', 'partition.cc',
