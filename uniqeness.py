@@ -42,6 +42,7 @@ def readNetworkFromRLD(directory_path):
     return RDatasetGraph
 
 
+
 def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
     if name_model == 'random':
         edges = int((avg_degree * size) / 2.000)
