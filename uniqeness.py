@@ -35,7 +35,7 @@ def readNetworkFromRLD(directory_path):
                     edge = tuple(map(int, line.strip().split("\t")))
                     edges.append(edge)
                 except ValueError:
-                    print(f"Skipping line with non-integer values: {line.strip()}")
+                    print("Skipping line with non-integer values: {line.strip()}")
 
     RDatasetGraph = nx.Graph(edges)
     print("Edges from dataset:", edges)
@@ -55,7 +55,7 @@ def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
     else:
         raise ValueError("Invalid network model name. Supported names are 'random', 'er', and 'ws'.")
 
-    # Eğer 'random' veya 'er'/'ws' dışında bir model ismi kullanılırsa None döndürülecek.
+    # Eger 'random' veya 'er'/'ws' disinda bir model ismi kullanilirsa None dondurecek.
     return None
 
 def compute_uniqueness(net):
