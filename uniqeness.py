@@ -42,7 +42,6 @@ def readNetworkFromRLD(directory_path):
     return RDatasetGraph
 
 
-
 def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
     if name_model == 'random':
         edges = int((avg_degree * size) / 2.000)
@@ -57,6 +56,7 @@ def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
 
     # Eger 'random' veya 'er'/'ws' disinda bir model ismi kullanilirsa None dondurecek.
     return None
+
 
 def compute_uniqueness(net):
     """ This function computes the percentage of unique structures in a network (with one layers).
@@ -207,6 +207,7 @@ def binarySearchUnique(lowervalue, uppervalue, uniqval, size, name_model, model_
                                   n_decisions=n_decisions + 1, z_value=z_value)
 
     print("Binary search values:", lowervalue, uppervalue, middlevalue, meanvalue, n_decisions)
+
 
 if __name__ == "__main__":
     target_uniqueness_value = 0.5
