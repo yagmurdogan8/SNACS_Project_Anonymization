@@ -57,6 +57,7 @@ def generateNetwork(size, name_model, avg_degree, model_par_prob=None):
     # Eger 'random' veya 'er'/'ws' disinda bir model ismi kullanilirsa None dondurecek.
     return None
 
+
 def compute_uniqueness(net):
     """ This function computes the percentage of unique structures in a network (with one layers).
     It extracts the neighborhood of every node and maps them to an isomorphism class,
