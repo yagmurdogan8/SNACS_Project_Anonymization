@@ -144,7 +144,7 @@ def binarySearchUnique(lowervalue, uppervalue, uniqval, net, name_model ,toleran
         return binarySearchUnique(low_extreme, up_extreme, uniqval, net, n_decisions=n_decisions + 1, z_value=z_value)
 
 
-path = input("Enter the path to the csv file: ")
+path = "data/SNAP_facebook_clean_data/new_sites_edges.csv"
 net = convertToNet(path)
 target_uniqueness_value = 0.5  # float(input("Enter the target uniqueness value: "))
 deg_low_value = 2  # input("Enter the lower value of the degree interval: ")
