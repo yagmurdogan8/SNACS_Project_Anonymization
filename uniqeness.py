@@ -24,7 +24,6 @@ crucial in order to make a decision regarding which new interval to consider in 
 directory_path = "data/SNAP_facebook_clean_data"
 
 
-
 def readNetworkFromRLD(directory_path):
     edges = []
     for filename in os.listdir(directory_path):
